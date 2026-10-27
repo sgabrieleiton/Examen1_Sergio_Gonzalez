@@ -18,13 +18,59 @@ beforeEach(function () {
 });
 
 it('crea un equipo y responde 201 con el encabezado Location', function () {
-    // TODO
-})->todo();
+    $categoria = Categoria::factory()->create();
+
+    $respuesta = $this->postJson('/api/equipos', [
+        'codigo' => 'EQ-9000',
+        'nombre' => 'Laptop de laboratorio',
+        'categoria_id' => $categoria->id,
+        'fecha_adquisicion' => today()->toDateString(),
+        'costo_interno' => 100000,
+    ]);
+
+    $respuesta->assertCreated()
+        ->assertHeader(
+            'Location',
+            route('equipos.show', $respuesta->json('data.id'))
+        )
+        ->assertJsonPath('data.codigo', 'EQ-9000');
+
+    $this->assertDatabaseHas('equipos', [
+        'codigo' => 'EQ-9000'
+    ]);
+});
 
 it('rechaza un equipo con datos inválidos y responde 422 con errores por campo', function () {
-    // TODO
-})->todo();
+    $this->postJson('/api/equipos', [
+        'codigo' => 'MAL',
+        'nombre' => 'A',
+        'categoria_id' => 9999,
+        'estado' => 'prestado',
+        'fecha_adquisicion' => today()->addDay()->toDateString(),
+        'costo_interno' => -1,
+    ])
+    ->assertUnprocessable()
+    ->assertJsonValidationErrors([
+        'codigo',
+        'nombre',
+        'categoria_id',
+        'estado',
+        'fecha_adquisicion',
+        'costo_interno',
+    ]);
+});
 
 it('impide eliminar un equipo prestado y responde 409', function () {
-    // TODO
-})->todo();
+    $equipo = Equipo::factory()->prestado()->create();
+
+    $this->deleteJson(route('equipos.destroy', $equipo))
+        ->assertConflict()
+        ->assertJson([
+            'mensaje' => 'No se puede eliminar un equipo prestado.',
+            'codigo' => 'REGLA_NEGOCIO',
+        ]);
+
+    $this->assertDatabaseHas('equipos', [
+        'id' => $equipo->id
+    ]);
+});
