@@ -22,11 +22,22 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * costo_interno, created_at y updated_at NO deben aparecer.
  * Reutilice CategoriaResource para la categoría.
  */
+
 class EquipoResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        // TODO
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'codigo' => $this->codigo,
+            'nombre' => $this->nombre,
+            'estado' => $this->estado,
+            'fecha_adquisicion' => $this->fecha_adquisicion?->format('Y-m-d'),
+            'categoria' => $this->whenLoaded(
+                'categoria',
+                fn () => new CategoriaResource($this->categoria)
+            ),
+        ];
     }
 }
+
