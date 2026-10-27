@@ -25,7 +25,7 @@ export const crearEquipo = (datos) => {
   });
 };
 
-// Eliminar un equipo
+// Eliminar un equipo.
 export const eliminarEquipo = (id) => {
   return request(`/equipos/${id}`, {
     method: "DELETE",

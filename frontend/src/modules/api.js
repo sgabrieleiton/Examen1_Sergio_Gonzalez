@@ -75,4 +75,5 @@ export const request = async (ruta, opciones = {}) => {
   } finally {
     clearTimeout(temporizador);
   }
+  
 };
